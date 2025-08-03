@@ -1,37 +1,20 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import HomePage from './pages/HomePage';
-import styled from '@emotion/styled';
-import LivePage from './pages/LivePage';
-import ProductListPage from './pages/ProductListPage';
-import OrderListPage from './pages/OrderListPage';
-import OrderDetailsPage from './pages/OrderDetailsPage';
+// src/App.jsx
+import {  Routes, Route } from 'react-router-dom'
+import Layout from './components/Layout'
+import IntroPage from './pages/IntroPage'
+import SubscribePage from './pages/SubscribePage'
+import ContentPage from './pages/ContentPage'
+import MyPage from './pages/MyPage'
 
-const AppContainer = styled.div`
-  min-height: 100vh;
-  background-color: #f2f2f2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-function App() {
+export default function App() {
   return (
-    <AppContainer>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="*" element={<Navigate to="/" />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/live" element={<LivePage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/products" element={<ProductListPage />} />
-        <Route path="/orders" element={<OrderListPage />} />
-        <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<IntroPage />} />
+          <Route path="subscribe" element={<SubscribePage />} />
+          <Route path="live" element={<ContentPage />} />
+          <Route path="my" element={<MyPage />} />
+        </Route>
       </Routes>
-    </AppContainer>
-  );
+  )
 }
-
-
-export default App;
