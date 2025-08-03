@@ -1,138 +1,196 @@
-import { useNavigate } from 'react-router-dom';
-import styled from '@emotion/styled';
-import { useState } from 'react';
+// src/pages/LivePage.jsx
+import React, { useRef, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import styled from '@emotion/styled'
+import likeIcon from '../assets/like.png'
+import couponIcon from '../assets/coupon.png'
 
-const Wrapper = styled.div`
-  width: 800px;
-  padding: 30px;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  background: #fff;
+const promoItems = [
+  { img: 'https://picsum.photos/80/80?random=5', title: '추천 상품 #1', price: '25,900원' },
+  { img: 'https://picsum.photos/80/80?random=6', title: '추천 상품 #2', price: '19,900원' },
+]
+
+// ── 스타일드 컴포넌트 ─────────────────────────────────
+
+const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
-`;
+  height: 100%;         /* 부모(ContentWrapper) 높이 전부 */
+`
 
-const LiveBox = styled.div`
-  height: 400px;
-  background-color: #000;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 8px;
-  font-size: 24px;
-  position: relative; /* To position buttons inside the LiveBox */
-`;
+const VideoWrapper = styled.div`
+  position: relative;
+  flex: 1;               /* 입력부 제외한 나머지 전부 차지 */
+  background: #000;
+  overflow: hidden;
+`
 
-const Button = styled.button`
-  padding: 12px;
-  background-color: #3f51b5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  width: 200px;
-
-  &:hover {
-    background-color: #303f9f;
-  }
-`;
-
-const LeftButton = styled(Button)`
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-`;
-
-const RightButton = styled(Button)`
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-`;
-
-const ChatBox = styled.div`
-  height: 200px;
-  background-color: #f4f4f4;
-  border-radius: 8px;
-  padding: 15px;
-  margin-top: 20px;
-  overflow-y: auto;
-`;
-
-const MessageInput = styled.input`
-  padding: 10px;
-  width: calc(100% - 22px); /* 100% width minus padding */
-  border-radius: 6px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-`;
-
-const SendButton = styled(Button)`
+const VideoElement = styled.video`
   width: 100%;
-  margin-top: 10px;
-`;
+  height: 100%;
+  object-fit: cover;
+`
 
-function LivePage() {
-  const navigate = useNavigate();
+const ProductOverlay = styled.div`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2;
 
-  const goToProduct = () => {
-    navigate('/products');
-  };
+  .promo {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.8);
+    padding: 4px 8px;
+    border-radius: 4px;
 
-  const goToHome = () => {
-    navigate('/');
-  };
+    img {
+      width: 40px; height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
+      margin-right: 8px;
+    }
 
-  // State for chat messages
-  const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState('');
+    .info {
+      font-size: 0.85rem;
 
-  // Handle sending the message
+      .title { font-weight: bold; }
+      .price { color: #e55353; }
+    }
+  }
+`
+
+const IconOverlay = styled.div`
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;  /* 세로 배치 */
+  gap: 12px;
+  z-index: 2;
+
+  img {
+    width: 32px; height: 32px;
+    cursor: pointer;
+  }
+`
+
+const ChatOverlay = styled.div`
+  position: absolute;
+  bottom: 80px;            /* 입력창 위, 영상 왼쪽 아래 */
+  left: 16px;
+  max-width: 60%;
+  max-height: 40%;
+  overflow-y: auto;
+  padding: 8px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.8rem;
+  z-index: 2;
+
+  div + div {
+    margin-top: 4px;
+  }
+`
+
+const ChatInputWrapper = styled.div`
+  padding: 8px 16px;
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+  display: flex;
+`
+
+const ChatInput = styled.input`
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.9rem;
+  margin-right: 8px;
+`
+
+const ChatButton = styled.button`
+  padding: 8px 16px;
+  background: #3f51b5;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+`
+
+// ── 컴포넌트 ─────────────────────────────────────────────
+
+export default function LivePage() {
+  const { id } = useParams()
+  const videoRef = useRef(null)
+  const [messages, setMessages] = useState([
+    '환영합니다! 라이브에 참여해 주세요.',
+    '첫 구매 고객에겐 추가 쿠폰을 드립니다.',
+  ])
+  const [input, setInput] = useState('')
+
+  useEffect(() => {
+    videoRef.current?.play().catch(() => {})
+  }, [])
+
   const sendMessage = () => {
-    if (message.trim() !== '') {
-      setMessages([...messages, { text: message, sender: 'You' }]);
-      setMessage('');
-    }
-  };
-
-  // Handle Enter key to send message
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  };
+    if (input.trim() === '') return
+    setMessages(prev => [...prev, input.trim()])
+    setInput('')
+  }
 
   return (
-    <Wrapper>
-      <LiveBox>📺 라이브 방송 영역 (예시)</LiveBox>
+    <PageContainer>
+      {/* 1) 영상 + 오버레이 */}
+      <VideoWrapper>
+        <VideoElement
+          ref={videoRef}
+          src="https://www.w3schools.com/html/mov_bbb.mp4"
+          loop
+          muted
+          autoPlay
+        />
 
-      {/* Positioned Buttons */}
-      <LeftButton onClick={goToHome}>🏠 홈으로 돌아가기</LeftButton>
-      <RightButton onClick={goToProduct}>🛍 상품 둘러보기</RightButton>
+        <ProductOverlay>
+          {promoItems.map((p, i) => (
+            <div className="promo" key={i}>
+              <img src={p.img} alt={p.title} />
+              <div className="info">
+                <div className="title">{p.title}</div>
+                <div className="price">{p.price}</div>
+              </div>
+            </div>
+          ))}
+        </ProductOverlay>
 
-      {/* Chat box */}
-      <ChatBox>
-        {/* Display chat messages */}
-        {messages.map((msg, index) => (
-          <div key={index}>
-            <strong>{msg.sender}: </strong>{msg.text}
-          </div>
-        ))}
-      </ChatBox>
+        <IconOverlay>
+          <img src={likeIcon} alt="좋아요" />
+          <img src={couponIcon} alt="쿠폰" />
+        </IconOverlay>
 
-      {/* Message input */}
-      <MessageInput
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder="채팅 입력"
-      />
-      <SendButton onClick={sendMessage}>보내기</SendButton>
-    </Wrapper>
-  );
+        <ChatOverlay>
+          {messages.map((m, i) => (
+            <div key={i}>{m}</div>
+          ))}
+        </ChatOverlay>
+      </VideoWrapper>
+
+      {/* 2) 채팅 입력부 (맨 하단 고정) */}
+      <ChatInputWrapper>
+        <ChatInput
+          type="text"
+          placeholder="실시간 채팅에 참여하세요"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && sendMessage()}
+        />
+        <ChatButton onClick={sendMessage}>전송</ChatButton>
+      </ChatInputWrapper>
+    </PageContainer>
+  )
 }
-
-export default LivePage;

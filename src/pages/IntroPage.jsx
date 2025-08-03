@@ -1,11 +1,13 @@
 // src/pages/IntroPage.jsx
 import React, { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import NotificationModal from '../components/NotificationModal'
 import styled from '@emotion/styled'
 import subscribeIcon from '../assets/subscribe.png'
 
 // ── 데이터 (나중에 동적/핀시아 반영 예정) ─────────────────────────
 const featuredData = {
+  id: 1,
   thumb: 'https://picsum.photos/400/300?random=99',
   title: 'LIVE 특가: 역대급 혜택 대공개',
   subtitle: '내일 오후 7시',
@@ -164,21 +166,31 @@ const ProductCard = styled.div`
   }
 `
 
+
+
 // ── 서브컴포넌트 ────────────────────────────────────────────
 function FeaturedSection() {
+  const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
+  const goToLive = () => navigate(`/live/${featuredData.id}`)
 
   return (
-    <FeaturedWrapper>
+    <FeaturedWrapper
+      onClick={goToLive}
+      style={{ cursor: 'pointer' }}       // 클릭 가능한 느낌
+    >
       <FeaturedBg />
       <FeaturedContent>
         <Thumb src={featuredData.thumb} alt="대표 라이브 썸네일" />
         <Details>
           <h3>{featuredData.title}</h3>
           <p className="sub">{featuredData.subtitle}</p>
-          <button className="alert-btn" onClick={openModal}>
+          <button 
+          className="alert-btn" 
+            onClick={e => { e.stopPropagation(); openModal() }}
+          >
             <img src={subscribeIcon} alt="알림" style={{ width: 16, height: 16 }} />
             알림 받기
           </button>
@@ -266,7 +278,7 @@ function ProductGridSection() {
               <div className="title">{p.title}</div>
               <div className="price">{p.price}</div>
             </div>
-            <button className="alert-btn" onClick={() => {}}>
+            <button className="alert-btn" onClick={() => { }}>
               <img src={subscribeIcon} alt="알림" style={{ width: 16, height: 16 }} />
               알림 받기
             </button>
