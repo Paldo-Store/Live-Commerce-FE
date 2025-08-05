@@ -166,17 +166,27 @@ const ChatButton = styled.button`
 
 const CouponPanel = styled.div`
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 45px;              /* 하단 탭바 높이(필요하면 조정) */
+  left: 50%;
+  width: 90%;
+  max-width: 420px;
   height: 40%;
+
   background: #fff;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
-  transform: ${({ visible }) => (visible ? 'translateY(0)' : 'translateY(100%)')};
-  transition: transform 0.3s ease-in-out;
+
+  /* 열림 ↔ 닫힘 */
+  transform: ${({ visible }) =>
+    visible ? 'translate(-50%, 0)'      /* 제자리 */
+            : 'translate(-50%, 110%)'}; /* 화면 아래로 완전 이동 */
+
+  transition: transform 0.7s ease-in-out;
+
   z-index: 3;
   display: flex;
   flex-direction: column;
+
+  pointer-events: ${({ visible }) => (visible ? 'auto' : 'none')};
+
 `
 
 const CouponHeader = styled.div`

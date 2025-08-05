@@ -1,5 +1,14 @@
+/* ───────── 전역 변수 선언 ───────── */
+:root {
+  /* 하단 네비 높이(필요하면 이 숫자만 바꾸면 끝) */
+  --bottom-nav-h: 60px;
+    --product-bar-h: 104px;   /* 실제 높이에 맞춰 조정 */
+
+}
+
+
 #root {
-  max-width: 1280px;
+  max-width: 1680px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;

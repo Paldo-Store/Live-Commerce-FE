@@ -48,10 +48,11 @@ const Header = styled.header`
 const BottomNav = styled.nav`
   width: 100%;
   max-width: 420px;
-  height: 60px;
+  height: var(--bottom-nav-h);   /* 변수만 사용 */
   background: #ffffff;
   border-top: 1px solid #e0e0e0;
   display: flex;
+  z-index: 10;
 `
 
 const NavItem = styled.div`
